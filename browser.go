@@ -2,8 +2,10 @@ package browser
 
 import (
 	"sync"
+	"time"
 
 	"github.com/go-rod/rod"
+	"github.com/go-rod/rod/lib/launcher"
 )
 
 type Browser struct {
@@ -33,7 +35,16 @@ func (r *Browser) Get(slug string, withLock bool) *rod.Browser {
 		return browser
 	}
 
-	newBrowser := rod.New().MustConnect().MustIgnoreCertErrors(true)
+	l := launcher.New().
+		Headless(false).
+		Devtools(true)
+
+	newBrowser := rod.New().
+		ControlURL(l.MustLaunch()).
+		Trace(true).
+		SlowMotion(2 * time.Second).
+		MustConnect().MustIgnoreCertErrors(true)
+
 	r.browsers[slug] = newBrowser
 	return newBrowser
 }
