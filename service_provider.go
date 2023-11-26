@@ -15,10 +15,12 @@ func (receiver *ServiceProvider) Register(app foundation.Application) {
 	App = app
 
 	app.Bind(Binding, func(app foundation.Application) (any, error) {
-		return NewBrowser(), nil
+		return NewBrowser(app.MakeConfig()), nil
 	})
 }
 
 func (receiver *ServiceProvider) Boot(app foundation.Application) {
-
+	app.Publishes("github.com/goravel-kit/browser", map[string]string{
+		"config/browser.go": app.ConfigPath("browser.go"),
+	})
 }

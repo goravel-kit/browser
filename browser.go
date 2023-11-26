@@ -2,20 +2,23 @@ package browser
 
 import (
 	"sync"
-	"time"
 
 	"github.com/go-rod/rod"
+	"github.com/go-rod/rod/lib/devices"
 	"github.com/go-rod/rod/lib/launcher"
+	"github.com/goravel/framework/contracts/config"
 )
 
 type Browser struct {
+	config   config.Config
 	browsers map[string]*rod.Browser
 	mu       sync.Mutex
 	locks    map[string]*sync.Mutex
 }
 
-func NewBrowser() *Browser {
+func NewBrowser(config config.Config) *Browser {
 	return &Browser{
+		config:   config,
 		browsers: make(map[string]*rod.Browser),
 		locks:    make(map[string]*sync.Mutex),
 	}
@@ -35,15 +38,17 @@ func (r *Browser) Get(slug string, withLock bool) *rod.Browser {
 		return browser
 	}
 
-	l := launcher.New().
-		Headless(false).
-		Devtools(true)
+	l := launcher.New().Set("disable-blink-features", "AutomationControlled").
+		Headless(r.config.GetBool("browser.headless", true)).
+		Devtools(r.config.GetBool("browser.devtools", false))
+	defer l.Cleanup()
 
 	newBrowser := rod.New().
 		ControlURL(l.MustLaunch()).
-		Trace(true).
-		SlowMotion(2 * time.Second).
-		MustConnect().MustIgnoreCertErrors(true)
+		DefaultDevice(devices.LaptopWithHiDPIScreen).
+		Trace(r.config.GetBool("browser.trace", true)).
+		MustIgnoreCertErrors(r.config.GetBool("browser.ignore_cert_errors", false)).
+		MustConnect()
 
 	r.browsers[slug] = newBrowser
 	return newBrowser
