@@ -33,7 +33,7 @@ func (r *Browser) Get(slug string, withLock bool) *rod.Browser {
 		return browser
 	}
 
-	newBrowser := rod.New().MustConnect()
+	newBrowser := rod.New().MustConnect().MustIgnoreCertErrors(true)
 	r.browsers[slug] = newBrowser
 	return newBrowser
 }

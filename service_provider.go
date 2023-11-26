@@ -15,7 +15,7 @@ func (receiver *ServiceProvider) Register(app foundation.Application) {
 	App = app
 
 	app.Bind(Binding, func(app foundation.Application) (any, error) {
-		return nil, nil
+		return NewBrowser(), nil
 	})
 }
 
