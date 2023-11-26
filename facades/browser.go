@@ -3,8 +3,8 @@ package facades
 import (
 	"log"
 
-	"goravel/packages/browser"
-	"goravel/packages/browser/contracts"
+	"github.com/goravel-kit/browser"
+	"github.com/goravel-kit/browser/contracts"
 )
 
 func Browser() contracts.Browser {
