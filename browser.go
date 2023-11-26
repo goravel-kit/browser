@@ -4,7 +4,6 @@ import (
 	"sync"
 
 	"github.com/go-rod/rod"
-	"github.com/go-rod/rod/lib/devices"
 	"github.com/go-rod/rod/lib/launcher"
 	"github.com/goravel/framework/contracts/config"
 )
@@ -47,7 +46,7 @@ func (r *Browser) Get(slug string, withLock bool) *rod.Browser {
 
 	newBrowser := rod.New().
 		ControlURL(l.MustLaunch()).
-		DefaultDevice(devices.LaptopWithHiDPIScreen).
+		NoDefaultDevice().
 		Trace(r.config.GetBool("browser.trace", true)).
 		MustConnect().
 		MustIgnoreCertErrors(r.config.GetBool("browser.ignore_cert_errors", false))
