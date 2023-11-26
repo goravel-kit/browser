@@ -25,14 +25,8 @@ func NewBrowser(config config.Config) *Browser {
 	}
 }
 
-// Get 获取浏览器
-func (r *Browser) Get(slug string, withLock bool) *rod.Browser {
-	if withLock {
-		r.ensureLock(slug)
-		r.locks[slug].Lock()
-		defer r.locks[slug].Unlock()
-	}
-
+// New 获取浏览器
+func (r *Browser) New(slug string) *rod.Browser {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -56,8 +50,8 @@ func (r *Browser) Get(slug string, withLock bool) *rod.Browser {
 	return newBrowser
 }
 
-// Clear 清除浏览器
-func (r *Browser) Clear(slug string) {
+// Destroy 销毁浏览器
+func (r *Browser) Destroy(slug string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -69,6 +63,18 @@ func (r *Browser) Clear(slug string) {
 		l.Cleanup()
 		delete(r.launchers, slug)
 	}
+}
+
+// Lock 获取锁
+func (r *Browser) Lock(slug string) {
+	r.ensureLock(slug)
+	r.locks[slug].Lock()
+}
+
+// Unlock 释放锁
+func (r *Browser) Unlock(slug string) {
+	r.ensureLock(slug)
+	r.locks[slug].Unlock()
 }
 
 // ensureLock 确保每个 slug 都有一个对应的锁
