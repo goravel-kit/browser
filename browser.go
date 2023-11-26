@@ -10,20 +10,23 @@ import (
 )
 
 type Browser struct {
-	config   config.Config
-	browsers map[string]*rod.Browser
-	mu       sync.Mutex
-	locks    map[string]*sync.Mutex
+	mu        sync.Mutex
+	config    config.Config
+	browsers  map[string]*rod.Browser
+	launchers map[string]*launcher.Launcher
+	locks     map[string]*sync.Mutex
 }
 
 func NewBrowser(config config.Config) *Browser {
 	return &Browser{
-		config:   config,
-		browsers: make(map[string]*rod.Browser),
-		locks:    make(map[string]*sync.Mutex),
+		config:    config,
+		browsers:  make(map[string]*rod.Browser),
+		launchers: make(map[string]*launcher.Launcher),
+		locks:     make(map[string]*sync.Mutex),
 	}
 }
 
+// Get 获取浏览器
 func (r *Browser) Get(slug string, withLock bool) *rod.Browser {
 	if withLock {
 		r.ensureLock(slug)
@@ -41,7 +44,6 @@ func (r *Browser) Get(slug string, withLock bool) *rod.Browser {
 	l := launcher.New().Set("disable-blink-features", "AutomationControlled").
 		Headless(r.config.GetBool("browser.headless", true)).
 		Devtools(r.config.GetBool("browser.devtools", false))
-	defer l.Cleanup()
 
 	newBrowser := rod.New().
 		ControlURL(l.MustLaunch()).
@@ -50,8 +52,24 @@ func (r *Browser) Get(slug string, withLock bool) *rod.Browser {
 		MustConnect().
 		MustIgnoreCertErrors(r.config.GetBool("browser.ignore_cert_errors", false))
 
+	r.launchers[slug] = l
 	r.browsers[slug] = newBrowser
 	return newBrowser
+}
+
+// Clear 清除浏览器
+func (r *Browser) Clear(slug string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if browser, exists := r.browsers[slug]; exists {
+		browser.MustClose()
+		delete(r.browsers, slug)
+	}
+	if l, exists := r.launchers[slug]; exists {
+		l.Cleanup()
+		delete(r.launchers, slug)
+	}
 }
 
 // ensureLock 确保每个 slug 都有一个对应的锁
