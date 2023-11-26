@@ -47,8 +47,8 @@ func (r *Browser) Get(slug string, withLock bool) *rod.Browser {
 		ControlURL(l.MustLaunch()).
 		DefaultDevice(devices.LaptopWithHiDPIScreen).
 		Trace(r.config.GetBool("browser.trace", true)).
-		MustIgnoreCertErrors(r.config.GetBool("browser.ignore_cert_errors", false)).
-		MustConnect()
+		MustConnect().
+		MustIgnoreCertErrors(r.config.GetBool("browser.ignore_cert_errors", false))
 
 	r.browsers[slug] = newBrowser
 	return newBrowser
