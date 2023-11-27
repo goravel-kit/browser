@@ -27,6 +27,11 @@ func NewBrowser(config config.Config) *Browser {
 
 // New 获取浏览器
 func (r *Browser) New(slug string) *rod.Browser {
+	r.ensureLock(slug)
+
+	r.locks[slug].Lock()
+	defer r.locks[slug].Unlock()
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -52,6 +57,11 @@ func (r *Browser) New(slug string) *rod.Browser {
 
 // Destroy 销毁浏览器
 func (r *Browser) Destroy(slug string) {
+	r.ensureLock(slug)
+
+	r.locks[slug].Lock()
+	defer r.locks[slug].Unlock()
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
