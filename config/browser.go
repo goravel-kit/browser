@@ -7,6 +7,8 @@ import (
 func init() {
 	config := facades.Config()
 	config.Add("browser", map[string]any{
+		// 管理地址
+		"manage_url": "",
 		// 跟踪模式
 		"trace": true,
 		// 无头

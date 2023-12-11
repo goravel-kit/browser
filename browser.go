@@ -39,13 +39,13 @@ func (r *Browser) New(slug string) *rod.Browser {
 		return browser
 	}
 
-	path, _ := launcher.LookPath()
-	l := launcher.New().Bin(path).Set("disable-blink-features", "AutomationControlled").
+	l := launcher.MustNewManaged(r.config.GetString("browser.manage_url")).
+		Set("disable-blink-features", "AutomationControlled").
 		Headless(r.config.GetBool("browser.headless", true)).
 		Devtools(r.config.GetBool("browser.devtools", false))
 
 	newBrowser := rod.New().
-		ControlURL(l.MustLaunch()).
+		Client(l.MustClient()).
 		NoDefaultDevice().
 		Trace(r.config.GetBool("browser.trace", true)).
 		MustConnect().
