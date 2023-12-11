@@ -4,24 +4,21 @@ import (
 	"sync"
 
 	"github.com/go-rod/rod"
-	"github.com/go-rod/rod/lib/launcher"
 	"github.com/goravel/framework/contracts/config"
 )
 
 type Browser struct {
-	mu        sync.Mutex
-	config    config.Config
-	browsers  map[string]*rod.Browser
-	launchers map[string]*launcher.Launcher
-	locks     map[string]*sync.Mutex
+	mu       sync.Mutex
+	config   config.Config
+	browsers map[string]*rod.Browser
+	locks    map[string]*sync.Mutex
 }
 
 func NewBrowser(config config.Config) *Browser {
 	return &Browser{
-		config:    config,
-		browsers:  make(map[string]*rod.Browser),
-		launchers: make(map[string]*launcher.Launcher),
-		locks:     make(map[string]*sync.Mutex),
+		config:   config,
+		browsers: make(map[string]*rod.Browser),
+		locks:    make(map[string]*sync.Mutex),
 	}
 }
 
@@ -39,22 +36,13 @@ func (r *Browser) New(slug string) *rod.Browser {
 		return browser
 	}
 
-	l := launcher.MustNewManaged(r.config.GetString("browser.manage_url")).
-		Set("disable-blink-features", "AutomationControlled").
-		Headless(r.config.GetBool("browser.headless", true)).
-		Devtools(r.config.GetBool("browser.devtools", false))
-	if !r.config.GetBool("browser.headless", true) {
-		l = l.XVFB("--server-num=5", "--server-args=-screen 0 1920x1080x16")
-	}
-
 	newBrowser := rod.New().
-		Client(l.MustClient()).
+		ControlURL(r.config.GetString("browser.url")).
 		NoDefaultDevice().
 		Trace(r.config.GetBool("browser.trace", true)).
 		MustConnect().
 		MustIgnoreCertErrors(r.config.GetBool("browser.ignore_cert_errors", false))
 
-	r.launchers[slug] = l
 	r.browsers[slug] = newBrowser
 	return newBrowser
 }
@@ -72,10 +60,6 @@ func (r *Browser) Destroy(slug string) {
 	if browser, exists := r.browsers[slug]; exists {
 		browser.MustClose()
 		delete(r.browsers, slug)
-	}
-	if l, exists := r.launchers[slug]; exists {
-		l.Cleanup()
-		delete(r.launchers, slug)
 	}
 }
 
