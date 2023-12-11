@@ -43,6 +43,9 @@ func (r *Browser) New(slug string) *rod.Browser {
 		Set("disable-blink-features", "AutomationControlled").
 		Headless(r.config.GetBool("browser.headless", true)).
 		Devtools(r.config.GetBool("browser.devtools", false))
+	if !r.config.GetBool("browser.headless", true) {
+		l = l.XVFB("--server-num=5", "--server-args=-screen 0 1600x900x16")
+	}
 
 	newBrowser := rod.New().
 		Client(l.MustClient()).
